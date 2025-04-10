@@ -4,25 +4,24 @@ import numpy as np
 import yfinance as yf
 import joblib
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Live Buy Signals", layout="wide")
 
 st.markdown("### 📈 Final Results:")
 
-# Load the trained LightGBM Booster model
-st.write("📄 Loading model...")
+# Load LightGBM Booster Model
+st.write("📜 Loading model...")
 model = joblib.load("lightgbm_model_converted.pkl")
 st.write("✅ Model loaded.")
 
-# Load the morning screener output
+# Load morning screener output
 screened_df = pd.read_csv("screened_tickers.csv")
 tickers = screened_df['Ticker'].unique().tolist()
 
 st.write("Screened Tickers:")
 st.write(tickers)
 
-# Define feature extraction
 def get_live_features(ticker):
     try:
         df = yf.download(ticker, period="2d", interval="1m", progress=False)
@@ -64,7 +63,7 @@ results = []
 for ticker in tickers:
     try:
         X = get_live_features(ticker)
-        pred_proba = model.predict(X.values)[0]  # Correct for Booster
+        pred_proba = model.predict(X.values)[0]  # Correct Booster usage
         buy_signal = "✅ Buy" if pred_proba > 0.9761 else "❌ No Buy"
         results.append({"Ticker": ticker, "Buy Signal": buy_signal, "Probability": round(pred_proba, 3)})
     except Exception as e:
@@ -74,4 +73,3 @@ st.dataframe(pd.DataFrame(results))
 
 # Auto-refresh every 2 minutes
 st.experimental_rerun() if datetime.now().second == 0 and datetime.now().minute % 2 == 0 else None
-
