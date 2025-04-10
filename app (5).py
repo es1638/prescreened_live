@@ -64,7 +64,7 @@ results = []
 for ticker in tickers:
     try:
         X = get_live_features(ticker)
-        pred_proba = model.predict(X)[0]  # Correct method for LightGBM Booster
+        pred_proba = model.predict(X.values)[0]  # FIXED: use .values for Booster
         buy_signal = "✅ Buy" if pred_proba > 0.9761 else "❌ No Buy"
         results.append({"Ticker": ticker, "Buy Signal": buy_signal, "Probability": round(pred_proba, 3)})
     except Exception as e:
@@ -74,4 +74,3 @@ st.dataframe(pd.DataFrame(results))
 
 # Auto-refresh every 2 minutes
 st.experimental_rerun() if datetime.now().second == 0 and datetime.now().minute % 2 == 0 else None
-
