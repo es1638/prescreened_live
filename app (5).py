@@ -1,33 +1,28 @@
 
-import streamlit as st
 import pandas as pd
 import numpy as np
 import yfinance as yf
 import joblib
+import streamlit as st
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Live Stock Buy Signals", layout="wide")
+st.set_page_config(page_title="Live Buy Signals", layout="wide")
 
-# Load model
-st.write("🗂️ Loading model...")
+st.markdown("### \U0001F4C8 Final Results:")
+
+# Load the trained LightGBM model
+st.write("\U0001F4DC Loading model...")
 model = joblib.load("lightgbm_model_converted.pkl")
-st.success("✅ Model loaded.")
+st.write("✅ Model loaded.")
 
-# Load screened tickers
+# Load the morning screener output
 screened_df = pd.read_csv("screened_tickers.csv")
 tickers = screened_df['Ticker'].unique().tolist()
 
 st.write("Screened Tickers:")
 st.write(tickers)
 
-# Define market close time
-market_close = datetime.now().replace(hour=16, minute=0, second=0, microsecond=0)
-now = datetime.now()
-
-if now >= market_close - timedelta(minutes=30):
-    st.warning("⚠️ Warning: Less than 30 minutes left in trading day. Results may be unreliable.")
-
-@st.cache_data(ttl=120)  # Auto-refresh every 2 minutes
+# Define feature extraction
 def get_live_features(ticker):
     try:
         df = yf.download(ticker, period="2d", interval="1m", progress=False)
@@ -69,12 +64,14 @@ results = []
 for ticker in tickers:
     try:
         X = get_live_features(ticker)
-        pred_proba = model.predict_proba(X)[:, 1][0]
+        pred_proba = model.predict_proba(X)[:, 1][0]  # Probability of class 1
         buy_signal = "✅ Buy" if pred_proba > 0.9761 else "❌ No Buy"
         results.append({"Ticker": ticker, "Buy Signal": buy_signal, "Probability": round(pred_proba, 3)})
     except Exception as e:
         results.append({"Ticker": ticker, "Buy Signal": "⚠️ Error", "Probability": str(e)})
 
-st.write("📈 Final Results:")
-df_results = pd.DataFrame(results)
-st.dataframe(df_results)
+st.dataframe(pd.DataFrame(results))
+
+# Auto-refresh every 2 minutes
+st.experimental_rerun() if datetime.now().second == 0 and datetime.now().minute % 2 == 0 else None
+
