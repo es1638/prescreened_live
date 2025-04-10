@@ -4,14 +4,14 @@ import numpy as np
 import yfinance as yf
 import joblib
 import streamlit as st
-from datetime import datetime, timedelta
+from datetime import datetime
 
 st.set_page_config(page_title="Live Buy Signals", layout="wide")
 
-st.markdown("### \U0001F4C8 Final Results:")
+st.markdown("### 📈 Final Results:")
 
-# Load the trained LightGBM model
-st.write("\U0001F4DC Loading model...")
+# Load the trained LightGBM Booster model
+st.write("📄 Loading model...")
 model = joblib.load("lightgbm_model_converted.pkl")
 st.write("✅ Model loaded.")
 
@@ -64,7 +64,7 @@ results = []
 for ticker in tickers:
     try:
         X = get_live_features(ticker)
-        pred_proba = model.predict(X.values)[0]  # FIXED: use .values for Booster
+        pred_proba = model.predict(X.values)[0]  # Correct for Booster
         buy_signal = "✅ Buy" if pred_proba > 0.9761 else "❌ No Buy"
         results.append({"Ticker": ticker, "Buy Signal": buy_signal, "Probability": round(pred_proba, 3)})
     except Exception as e:
