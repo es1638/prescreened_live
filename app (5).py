@@ -74,3 +74,4 @@ st.dataframe(pd.DataFrame(results))
 
 # Auto-refresh every 2 minutes
 st.experimental_rerun() if datetime.now().second == 0 and datetime.now().minute % 2 == 0 else None
+
